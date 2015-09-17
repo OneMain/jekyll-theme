@@ -1,0 +1,101 @@
+---
+layout: post
+title:  "Java 调用cmd.exe命令"
+date:   2014-05-26 16:00:09
+categories: Java
+tags: java
+---
+今天由于项目需要读取文件 复制文件  移动文件 反正就是个io干上了，觉得io简单的移动复制 还是有些慢；觉得使用doc命令比较快点于是百度Java 调用cmd.exe命令 ：一下代码绝对可执行 我已在项目中应用了：
+  {% highlight ruby %}
+  public static boolean copy(String oldpath,String newParh){
+      boolean m = true;
+      String pdfpath = oldpath.replace("/", "\\\\");
+      String faxpath = newParh.replace("/", "\\\\");
+      try{
+       String str = "cmd /c copy   "+pdfpath+"  "+faxpath;
+       Runtime.getRuntime().exec(str);
+       }catch(Exception e){
+        m=false;
+        e.printStackTrace();
+       }
+       return m;
+   }
+    #=>原理：java的Runtime.getRuntime().exec(commandText)可以调用执行cmd指令。
+   {% endhighlight%}
+
+
+cmd /c dir 是执行完dir命令后关闭命令窗口。
+cmd /k dir 是执行完dir命令后不关闭命令窗口。
+
+cmd /c start dir 会打开一个新窗口后执行dir指令，原窗口会关闭。
+cmd /k start dir 会打开一个新窗口后执行dir指令，原窗口不会关闭。
+注：增加了start，就会打开新窗口，可以用cmd /?查看帮助信息。
+
+如下举例：
+1、从D盘copy一份文件到E盘。
+{% highlight bash lineanchors %}
+public static void main(String[] args) {
+    try {
+        String cmdStr = "cmd /c copy d:\\test.txt e:\\" ;
+        Runtime.getRuntime().exec(cmdStr);
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+}
+ #=> 注：这里d盘下的目录要用\\，若用d:/test.txt则会理解成同/c一样的命令，而找不到文件路径；故这里可以用file.getAbsolutePath();
+{%endhighlight%}
+
+
+2、删除一个文件(注意是单个文件，非文件夹)。这里以上面copy到e盘的test.txt文件为例。
+
+{% highlight bash lineanchors %}
+public static void main(String[] args) {
+    try {
+        String cmdStr = "cmd /c del e:\\test.txt" ;
+        Runtime.getRuntime().exec(cmdStr);
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+}
+{%endhighlight%}
+
+
+3、强制删除e:/test文件夹下的所有文件夹及文件
+{% highlight bash lineanchors %}
+public static void main(String[] args) {
+    try {
+        String cmdStr = "cmd /c rd/s/q e:\\test" ;
+        Runtime.getRuntime().exec(cmdStr);
+    }catch(Exception e){
+        e.printStackTrace();
+    }
+}
+#=>注：这里主要是“rd/s/q”起到了作用，这样无论test里面有几层文件夹，文件夹下有多少文件，都统统被强制删除了。
+
+{%endhighlight%}
+
+调用系统命令，使用如下的一行代码：
+Process process = Runtime.getRuntime().exec("cmd /c copy d:\\test.txt e:");
+其中，方法exec的参数就是你要调用的具体系统命令。因为copy本身不是一个可执行的exe文件，因此需要在前面添加cmd /c来启动一个控制台应用程序。而若要运行一个可执行程序，如执行我在F盘下的tomcat安装文件，将命令写为：String cmdStr = "F:\\apache-tomcat-6.0.20.exe";
+
+调用批处理代码:
+{% highlight bash lineno %}
+public static void main(String[] args) {
+    String path = "D:\\public.bat";
+    Runtime run = Runtime.getRuntime();
+    try {
+        Process process = run.exec("cmd.exe /k start " + path);
+
+        //将调用结果打印到控制台上
+        InputStream in = process.getInputStream();
+        while (in.read() != -1) {
+            System.out.println(in.read());
+        }
+        in.close();
+        process.waitFor();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+}
+
+{%endhighlight%}

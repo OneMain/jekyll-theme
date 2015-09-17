@@ -1,0 +1,23 @@
+---
+layout: post
+title:  "Mysql数据库初始化密码过程："
+date:   2014-05-26 16:00:09
+categories: mysql
+tags: mysql
+---
+数据库初始化密码过程：
+
+{% highlight bash lineno %}
+1：cd /usr/local/Cellar/mysql/5.6.24/bin/
+./mysqld_safe --skip-grant-tables&
+./mysql
+2：
+mysql> USE mysql ;
+mysql> UPDATE user SET Password = password('1234') WHERE User = 'root' ;
+
+mysql> flush privileges ;
+
+mysql> quit
+
+
+{%endhighlight%}
